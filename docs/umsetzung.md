@@ -21,7 +21,7 @@ Es gibt keinen Build-Prozess und keine externen Abhaengigkeiten.
 
 - 16x16-Spielfeld
 - Wurm mit kontinuierlicher Bewegung
-- Steuerung mit `W`, `A`, `S`, `D`
+- Steuerung mit `W`, `A`, `S`, `D` und Pfeiltasten
 - 180-Grad-Sperre
 - Wandkollision und Selbstkollision als Game Over
 - Startscreen mit `Leertaste`

@@ -982,8 +982,16 @@ function getDirectionNameFromOffset(x, y) {
 }
 
 function getMappedKey(key) {
+  const normalizedKeyMap = {
+    arrowup: "w",
+    arrowdown: "s",
+    arrowleft: "a",
+    arrowright: "d"
+  };
+  const normalizedKey = normalizedKeyMap[key] || key;
+
   if (!activeEffects.disturbedUntil) {
-    return key;
+    return normalizedKey;
   }
 
   const disturbedMap = {
@@ -993,7 +1001,7 @@ function getMappedKey(key) {
     d: "a"
   };
 
-  return disturbedMap[key] || key;
+  return disturbedMap[normalizedKey] || normalizedKey;
 }
 
 function getRandomFreeCell() {

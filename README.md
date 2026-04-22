@@ -11,7 +11,7 @@ Zum Starten einfach `index.html` im Browser oeffnen.
 ## Steuerung
 
 - `Leertaste`: Spiel starten oder nach Game Over neu starten
-- `W`, `A`, `S`, `D`: Richtung steuern
+- `W`, `A`, `S`, `D` oder Pfeiltasten: Richtung steuern
 - `1` bis `5`: Inventar-Slots direkt ausloesen
 - Mausklick auf Inventar-Slot: gespeichertes Power-up benutzen
 
