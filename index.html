@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Worm.</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main class="page">
+    <div class="layout">
+      <section class="panel">
+        <div class="topbar">
+          <div>
+            <p class="label">Punkte</p>
+            <p id="score" class="value">0</p>
+            <p id="highscore" class="sub-value">Highscore: 0</p>
+          </div>
+          <div>
+            <p class="label">Status</p>
+            <p id="status" class="value">Bereit</p>
+          </div>
+          <div>
+            <p class="label">Effekt</p>
+            <p id="effect" class="value small-value">Keiner</p>
+          </div>
+        </div>
+
+        <div class="game-shell">
+          <div id="board" class="board" aria-label="Spielfeld"></div>
+          <div id="wormLayer" class="worm-layer" aria-hidden="true"></div>
+          <div id="overlay" class="overlay">
+            <div class="overlay-card">
+              <h1>Worm.</h1>
+              <p id="overlayText">
+                Drücke Leertaste zum Starten.
+              </p>
+              <p class="hint">Steuerung: W A S D</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="info-row">
+          <p>Der Wurm darf nicht gegen die Wand oder in sich selbst fahren.</p>
+          <p>Gute Power-ups landen im Inventar. Klicke sie an, um sie zu benutzen.</p>
+        </div>
+
+        <section class="inventory-panel">
+          <div class="inventory-header">
+            <p class="label">Inventar</p>
+            <p class="hint">Slowmotion, Kürzer werden, Ghost, Magnet und Time Stop</p>
+          </div>
+          <div id="inventory" class="inventory" aria-label="Inventar"></div>
+        </section>
+      </section>
+
+      <aside class="settings-panel">
+        <h2>Einstellungen</h2>
+
+        <label class="setting-field" for="speedSelect">
+          <span class="label">Geschwindigkeit</span>
+          <select id="speedSelect" class="setting-select">
+            <option value="slow">Langsam</option>
+            <option value="normal" selected>Normal</option>
+            <option value="fast">Schnell</option>
+          </select>
+        </label>
+
+        <label class="setting-field" for="spawnSelect">
+          <span class="label">Spawnrate</span>
+          <select id="spawnSelect" class="setting-select">
+            <option value="low">Wenig</option>
+            <option value="normal" selected>Normal</option>
+            <option value="high">Viel</option>
+          </select>
+        </label>
+
+        <label class="toggle-field" for="safetyToggle">
+          <span>
+            <span class="label">Anti-Epilepsie</span>
+            <span class="hint">Disco und grüner Apfel werden abgeschaltet.</span>
+          </span>
+          <input id="safetyToggle" type="checkbox">
+        </label>
+
+        <section class="effect-grid">
+          <div class="effect-grid-head label">Power-up</div>
+          <div class="effect-grid-head label">Zeit</div>
+
+          <label class="mini-toggle paired" for="toggleSlow">
+            <span>Slowmotion</span>
+            <input id="toggleSlow" type="checkbox" checked>
+          </label>
+          <label class="time-field paired" for="slowDuration">
+            <span class="sr-only">Slowmotion Dauer</span>
+            <input id="slowDuration" type="number" min="1" max="30" step="1" value="5">
+          </label>
+
+          <label class="mini-toggle paired" for="toggleTrim">
+            <span>Kürzer</span>
+            <input id="toggleTrim" type="checkbox" checked>
+          </label>
+          <div class="time-empty">Keine Zeit</div>
+
+          <label class="mini-toggle paired" for="toggleGhost">
+            <span>Ghost</span>
+            <input id="toggleGhost" type="checkbox" checked>
+          </label>
+          <label class="time-field paired" for="ghostDuration">
+            <span class="sr-only">Ghost Dauer</span>
+            <input id="ghostDuration" type="number" min="1" max="30" step="1" value="5">
+          </label>
+
+          <label class="mini-toggle paired" for="toggleMagnet">
+            <span>Magnet</span>
+            <input id="toggleMagnet" type="checkbox" checked>
+          </label>
+          <label class="time-field paired" for="magnetDuration">
+            <span class="sr-only">Magnet Dauer</span>
+            <input id="magnetDuration" type="number" min="1" max="30" step="1" value="5">
+          </label>
+
+          <label class="mini-toggle paired" for="toggleTimeStop">
+            <span>Time Stop</span>
+            <input id="toggleTimeStop" type="checkbox" checked>
+          </label>
+          <label class="time-field paired" for="timeStopDuration">
+            <span class="sr-only">Time Stop Dauer</span>
+            <input id="timeStopDuration" type="number" min="1" max="30" step="1" value="5">
+          </label>
+
+          <label class="mini-toggle paired" for="toggleTeleport">
+            <span>Teleport</span>
+            <input id="toggleTeleport" type="checkbox" checked>
+          </label>
+          <div class="time-empty">Sofort</div>
+
+          <label class="mini-toggle paired" for="toggleBad">
+            <span>Störung</span>
+            <input id="toggleBad" type="checkbox" checked>
+          </label>
+          <label class="time-field paired" for="disturbanceDuration">
+            <span class="sr-only">Störung Dauer</span>
+            <input id="disturbanceDuration" type="number" min="1" max="30" step="1" value="4">
+          </label>
+
+          <label class="mini-toggle paired" for="toggleDisco">
+            <span>Disco</span>
+            <input id="toggleDisco" type="checkbox" checked>
+          </label>
+          <label class="time-field paired" for="discoDuration">
+            <span class="sr-only">Disco Dauer</span>
+            <input id="discoDuration" type="number" min="1" max="30" step="1" value="5">
+          </label>
+
+          <label class="mini-toggle paired" for="toggleAcid">
+            <span>Grüner Apfel</span>
+            <input id="toggleAcid" type="checkbox" checked>
+          </label>
+          <label class="time-field paired" for="acidDuration">
+            <span class="sr-only">Grüner Apfel Dauer</span>
+            <input id="acidDuration" type="number" min="1" max="30" step="1" value="5">
+          </label>
+        </section>
+      </aside>
+    </div>
+  </main>
+
+  <script src="game.js"></script>
+</body>
+</html>
