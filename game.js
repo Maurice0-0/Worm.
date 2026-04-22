@@ -129,7 +129,7 @@ createInventorySlots();
 resetGame();
 render();
 
-document.addEventListener("keydown", handleKeydown);
+window.addEventListener("keydown", handleKeydown, { capture: true });
 window.addEventListener("resize", handleWindowResize);
 inventoryElement.addEventListener("click", handleInventoryClick);
 speedSelectElement.addEventListener("change", handleSpeedChange);
@@ -275,7 +275,11 @@ function gameOver(reason) {
 }
 
 function handleKeydown(event) {
-  const key = event.key.toLowerCase();
+  const key = getNormalizedInputKey(event);
+
+  if (!key) {
+    return;
+  }
 
   if (key === " ") {
     event.preventDefault();
@@ -300,6 +304,8 @@ function handleKeydown(event) {
   if (!selectedDirection || gameState === "gameover") {
     return;
   }
+
+  event.preventDefault();
 
   if (isOppositeDirection(selectedDirection, currentDirection)) {
     return;
@@ -986,6 +992,10 @@ function getMappedKey(key) {
     arrowup: "w",
     arrowdown: "s",
     arrowleft: "a",
+    left: "a",
+    up: "w",
+    right: "d",
+    down: "s",
     arrowright: "d"
   };
   const normalizedKey = normalizedKeyMap[key] || key;
@@ -1002,6 +1012,33 @@ function getMappedKey(key) {
   };
 
   return disturbedMap[normalizedKey] || normalizedKey;
+}
+
+function getNormalizedInputKey(event) {
+  const rawKey = typeof event.key === "string" ? event.key.toLowerCase() : "";
+  if (rawKey) {
+    return rawKey;
+  }
+
+  const codeMap = {
+    arrowup: "arrowup",
+    arrowdown: "arrowdown",
+    arrowleft: "arrowleft",
+    arrowright: "arrowright",
+    keyw: "w",
+    keya: "a",
+    keys: "s",
+    keyd: "d",
+    digit1: "1",
+    digit2: "2",
+    digit3: "3",
+    digit4: "4",
+    digit5: "5",
+    space: " "
+  };
+  const rawCode = typeof event.code === "string" ? event.code.toLowerCase() : "";
+
+  return codeMap[rawCode] || "";
 }
 
 function getRandomFreeCell() {
