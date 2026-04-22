@@ -87,6 +87,10 @@ let wormHeadCircle = null;
 let wormEyeOne = null;
 let wormEyeTwo = null;
 let wormSvgPadding = 0;
+let previousWorm = [];
+let lastMoveStartedAt = 0;
+let currentMoveAnimationDuration = 170;
+let animationFrameId = null;
 
 const settings = {
   speed: "normal",
@@ -128,6 +132,7 @@ createBoard();
 createInventorySlots();
 resetGame();
 render();
+startRenderLoop();
 
 window.addEventListener("keydown", handleKeydown, { capture: true });
 window.addEventListener("resize", handleWindowResize);
@@ -217,6 +222,9 @@ function resetGame() {
     { x: 6, y: 8 },
     { x: 5, y: 8 }
   ];
+  previousWorm = cloneSegments(worm);
+  lastMoveStartedAt = 0;
+  currentMoveAnimationDuration = getNormalTickDelay();
   currentDirection = directions.d;
   nextDirection = directions.d;
   objects = [];
@@ -259,6 +267,19 @@ function restartGameLoop() {
   }
 
   gameLoopId = setInterval(updateGame, currentTickDelay);
+}
+
+function startRenderLoop() {
+  if (animationFrameId) {
+    cancelAnimationFrame(animationFrameId);
+  }
+
+  const renderFrame = () => {
+    renderWormLayer();
+    animationFrameId = requestAnimationFrame(renderFrame);
+  };
+
+  animationFrameId = requestAnimationFrame(renderFrame);
 }
 
 function gameOver(reason) {
@@ -390,6 +411,7 @@ function updateGame() {
 function moveWormOneStep(direction, now) {
   const activeNow = now || Date.now();
   const ghostActive = isGhostActive(activeNow);
+  const nextPreviousWorm = cloneSegments(worm);
 
   const head = worm[0];
   const nextHead = {
@@ -409,11 +431,17 @@ function moveWormOneStep(direction, now) {
 
   if (!ghostActive && bodyToCheck.some((segment) => segment.x === nextHead.x && segment.y === nextHead.y)) {
     worm = [nextHead, ...worm];
+    previousWorm = cloneSegments(nextPreviousWorm);
+    lastMoveStartedAt = activeNow;
+    currentMoveAnimationDuration = getCurrentMoveAnimationDuration();
     render();
     gameOver("Du bist in deinen eigenen Körper gefahren.");
     return;
   }
 
+  previousWorm = cloneSegments(nextPreviousWorm);
+  lastMoveStartedAt = activeNow;
+  currentMoveAnimationDuration = getCurrentMoveAnimationDuration();
   worm.unshift(nextHead);
 
   if (objectAtNextHead) {
@@ -841,7 +869,8 @@ function renderWormLayer() {
   }
 
   const svgSize = boardPixelSize + wormSvgPadding * 2;
-  const head = worm[0];
+  const renderedWorm = getRenderedWormSegments();
+  const head = renderedWorm[0];
   const bodyWidth = cellPixelSize * 0.56;
   const headRadius = cellPixelSize * 0.28;
   const eyeRadius = Math.max(1.6, cellPixelSize * 0.05);
@@ -855,7 +884,7 @@ function renderWormLayer() {
 
   wormBodyPath.setAttribute(
     "points",
-    worm
+    renderedWorm
       .map((segment) => {
         const centerX = wormSvgPadding + (segment.x + 0.5) * cellPixelSize;
         const centerY = wormSvgPadding + (segment.y + 0.5) * cellPixelSize;
@@ -867,7 +896,7 @@ function renderWormLayer() {
 
   const headCenterX = wormSvgPadding + (head.x + 0.5) * cellPixelSize;
   const headCenterY = wormSvgPadding + (head.y + 0.5) * cellPixelSize;
-  const headDirection = getHeadVector();
+  const headDirection = getHeadVector(renderedWorm);
   const perpendicular = { x: -headDirection.y, y: headDirection.x };
   const eyeForward = cellPixelSize * 0.11;
   const eyeSide = cellPixelSize * 0.1;
@@ -884,10 +913,10 @@ function renderWormLayer() {
   wormEyeTwo.setAttribute("cy", String(headCenterY + headDirection.y * eyeForward - perpendicular.y * eyeSide));
 }
 
-function getHeadVector() {
-  if (worm.length > 1) {
-    const neck = worm[1];
-    const head = worm[0];
+function getHeadVector(segments = worm) {
+  if (segments.length > 1) {
+    const neck = segments[1];
+    const head = segments[0];
     const xOffset = head.x - neck.x;
     const yOffset = head.y - neck.y;
 
@@ -897,6 +926,55 @@ function getHeadVector() {
   }
 
   return { x: currentDirection.x, y: currentDirection.y };
+}
+
+function getRenderedWormSegments() {
+  if (worm.length === 0) {
+    return [];
+  }
+
+  const animationProgress = getMovementProgress();
+  if (animationProgress >= 1 || previousWorm.length === 0) {
+    return worm;
+  }
+
+  const interpolatedSegments = [];
+
+  for (let index = 0; index < worm.length; index++) {
+    const currentSegment = worm[index];
+    const previousSegment =
+      previousWorm[index] ||
+      previousWorm[previousWorm.length - 1] ||
+      currentSegment;
+
+    interpolatedSegments.push({
+      x: previousSegment.x + (currentSegment.x - previousSegment.x) * animationProgress,
+      y: previousSegment.y + (currentSegment.y - previousSegment.y) * animationProgress
+    });
+  }
+
+  return interpolatedSegments;
+}
+
+function getMovementProgress() {
+  if (!lastMoveStartedAt || isTimeStopActive()) {
+    return 1;
+  }
+
+  const duration = Math.max(1, currentMoveAnimationDuration);
+  return Math.min(1, (Date.now() - lastMoveStartedAt) / duration);
+}
+
+function getCurrentMoveAnimationDuration() {
+  if (isTimeStopActive()) {
+    return 110;
+  }
+
+  return currentTickDelay;
+}
+
+function cloneSegments(segments) {
+  return segments.map((segment) => ({ x: segment.x, y: segment.y }));
 }
 
 function getObjectAt(x, y) {
